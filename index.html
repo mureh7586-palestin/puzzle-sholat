@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Puzzle + Kuis Kelas III</title>
+<style>
+  body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 0; background:#f4f4f4; }
+  h1 { background: #333; color: #fff; padding: 10px; margin: 0; }
+  #game-container { max-width: 500px; margin: 20px auto; }
+  #puzzle-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin: 10px 0; }
+  .piece { 
+    width: 100%; 
+    aspect-ratio: 1; 
+    background-size: 300% 300%; 
+    border: 1px solid #999; 
+    cursor: grab; 
+    transition: transform 0.3s ease; /* animasi transisi */
+  }
+  .piece:active { transform: scale(1.1); } /* efek klik */
+  #quiz, #result, #choices { margin-top: 15px; }
+  button { padding: 8px 12px; font-size: 16px; border-radius: 6px; border: none; cursor: pointer; background:#333; color:#fff; }
+  button:hover { background:#555; }
+  #timer, #score { font-weight: bold; margin: 5px; display: inline-block; }
+  @media (max-width:600px){
+    #game-container { width: 95%; }
+    button { font-size: 14px; padding: 6px 10px; }
+  }
+</style>
+</head>
+<body>
+  <h1>Puzzle + Kuis Kelas III</h1>
+
+  <div id="form-container">
+    <img src="halo.gif" width="100px" height="50%">
+    <p><input id="nama" placeholder="Nama Lengkap"></p>
+    <p><input id="kelas" placeholder="Kelas"></p>
+    <button onclick="startGame()">Mulai Game</button>
+  </div>
+
+  <div id="hud" style="display:none;">
+    <div id="timer">Waktu: 0 dtk</div>
+    <div id="score">Skor: 0</div>
+  </div>
+
+  <div id="game-container" style="display:none;">
+    <div id="puzzle-container"></div>
+    <div id="quiz"></div>
+    <div id="result"></div>
+  </div>
+
+  <!-- 🔊 Suara -->
+  <audio id="soundClick" src="click.mp3"></audio>
+  <audio id="soundCorrect" src="correct.mp3"></audio>
+  <audio id="soundWrong" src="wrong.mp3"></audio>
+  <audio id="soundPuzzle" src="yeay.mp3"></audio>
+  <audio id="soundFinish" src="finish.mp3"></audio>
+
+<script>
+const images = ["niat.jpg","rukuk.jpg","salam.jpg","takbiratul-ihram.jpg","iftitah.jpg","duduk-antara-2-sujud.jpg","itidal.jpg","tasyahud-awal.jpg","tasyahud-akhir.jpg","qunut.jpg","berdiri-kembali.jpg"];
+
+const quizzes = {
+  "niat.jpg": { question: "Disebut gerakan apa dalam sholat pada gambar diatas ?", options: ["Berdiri Kembali","Takbiratul Ihram","Niat"], answer: "Niat" },
+  "rukuk.jpg": { question: "Disebut gerakan apa dalam sholat pada gambar diatas ?", options: ["Sujud","Rukuk","Nunduk"], answer: "Rukuk" },
+  "salam.jpg": { question: "Disebut gerakan apa dalam sholat pada gambar diatas ?", options: ["Salam","Noleh","Rukuk"], answer: "Salam" },
+  "takbiratul-ihram.jpg": { question: "Disebut gerakan apa dalam sholat pada gambar diatas ?", options: ["Sujud","Berdiri Kembali","Takbiratul Ihram"], answer: "Takbiratul Ihram" },
+  "iftitah.jpg": { question: "Disebut gerakan apa dalam sholat pada gambar diatas ?", options: ["Qunut", "Iftitah", "Duduk diatara 2 sujud"], answer: "Iftitah" },
+  "duduk-antara-2-sujud.jpg": { question: "Disebut gerakan apa dalam sholat pada gambar diatas ?", options: ["Duduk diatara 2 sujud", "Tasyahud Awal", "I'tidal"], answer: "Duduk diatara 2 sujud" },
+  "itidal.jpg": { question: "Disebut gerakan apa dalam sholat pada gambar diatas ?", options: ["I'tidal", "Rukuk", "Sujud"], answer: "I'tidal" },
+  "tasyahud-awal.jpg": { question: "Disebut gerakan apa dalam sholat pada gambar diatas ?", options: ["Tasyahud Akhir", "Tasyahud Awal", "Rukuk"], answer: "Tasyahud Awal" },
+  "tasyahud-akhir.jpg": { question: "Disebut gerakan apa dalam sholat pada gambar diatas ?", options: ["Rukuk", "Tasyahud Awal", "Tasyahud Akhir"], answer: "Tasyahud Akhir" },
+  "qunut.jpg": { question: "Disebut gerakan apa dalam sholat pada gambar diatas ?", options: ["Qunut", "Do'a", "Angkat Tangan"], answer: "Qunut" },
+  "berdiri-kembali.jpg": { question: "Disebut gerakan apa dalam sholat pada gambar diatas ?", options: ["Rukuk", "Sujud", "Berdiri Kembali"], answer: "Berdiri Kembali" }
+};
+
+let currentImage = null;
+let score = 0, timer = 0, interval, solvedCount = 0;
+let player = {nama:"", kelas:""};
+
+function playSound(id){ 
+  let s=document.getElementById(id); 
+  if(s){ s.currentTime=0; s.play(); } 
+}
+
+function startGame(){
+  player.nama = document.getElementById("nama").value;
+  player.kelas = document.getElementById("kelas").value;
+  if(!player.nama || !player.kelas){ alert("Isi nama dan kelas dulu!"); return; }
+
+  document.getElementById("form-container").style.display="none";
+  document.getElementById("game-container").style.display="block";
+  document.getElementById("hud").style.display="block";
+
+  score = 0; timer = 0; solvedCount = 0;
+  document.getElementById("score").innerText="Skor: 0";
+  document.getElementById("timer").innerText="Waktu: 0 dtk";
+  if(interval) clearInterval(interval);
+  interval = setInterval(()=>{ timer++; document.getElementById("timer").innerText="Waktu: "+timer+" dtk"; },1000);
+
+  createPuzzle(images[0]);
+}
+
+function shuffle(array){ return array.sort(()=>Math.random()-0.5); }
+
+function createPuzzle(imageSrc){
+  currentImage = imageSrc;
+  document.getElementById("quiz").innerHTML="";
+  document.getElementById("result").innerHTML="";
+  const container = document.getElementById("puzzle-container");
+  container.innerHTML="";
+  let pieces=[];
+  for(let row=0; row<3; row++){
+    for(let col=0; col<3; col++){
+      let piece=document.createElement("div");
+      piece.classList.add("piece");
+      piece.style.backgroundImage=`url(${imageSrc})`;
+      piece.style.backgroundSize="300% 300%";
+      piece.style.backgroundPosition=`${col*50}% ${row*50}%`;
+      piece.setAttribute("data-correct", row*3+col);
+      piece.draggable=true;
+      pieces.push(piece);
+    }
+  }
+  shuffle(pieces).forEach(p=>container.appendChild(p));
+  addDragDrop();
+}
+
+function addDragDrop(){
+  const pieces=document.querySelectorAll(".piece");
+  let dragged=null;
+  pieces.forEach(p=>{
+    // suara klik
+    p.addEventListener("mousedown", ()=> playSound("soundClick"));
+    p.addEventListener("touchstart", ()=> playSound("soundClick"));
+
+    p.addEventListener("dragstart", ()=>{ dragged=p; });
+    p.addEventListener("dragover", e=>e.preventDefault());
+    p.addEventListener("drop", e=>{
+      e.preventDefault();
+      if(dragged!==p){
+        let temp=document.createElement("div");
+        p.parentNode.insertBefore(temp,p);
+        dragged.parentNode.insertBefore(p,dragged);
+        temp.parentNode.insertBefore(dragged,temp);
+        temp.remove();
+        checkWin();
+      }
+    });
+
+    // support sentuh (HP)
+    p.addEventListener("touchstart", e=>{ dragged=p; });
+    p.addEventListener("touchmove", e=> e.preventDefault());
+    p.addEventListener("touchend", e=>{
+      let touch=document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+      if(touch && touch.classList.contains("piece") && touch!==dragged){
+        let temp=document.createElement("div");
+        touch.parentNode.insertBefore(temp,touch);
+        dragged.parentNode.insertBefore(touch,dragged);
+        temp.parentNode.insertBefore(dragged,temp);
+        temp.remove();
+        checkWin();
+      }
+    });
+  });
+}
+
+function checkWin(){
+  const pieces=document.querySelectorAll(".piece");
+  let correct=true;
+  pieces.forEach((p,i)=>{ if(p.getAttribute("data-correct")!=i) correct=false; });
+  if(correct){ 
+    playSound("soundPuzzle");
+    showQuiz(currentImage); 
+  }
+}
+
+function showQuiz(imageSrc){
+  const quiz=quizzes[imageSrc];
+  const quizDiv=document.getElementById("quiz");
+  quizDiv.innerHTML=`<h3>${quiz.question}</h3>`;
+  quiz.options.forEach(opt=>{
+    const btn=document.createElement("button");
+    btn.innerText=opt;
+    btn.onclick=()=>{
+      if(opt===quiz.answer){ 
+        score++; 
+        playSound("soundCorrect"); 
+        document.getElementById("score").innerText="Skor: "+score; 
+      } else { 
+        playSound("soundWrong"); 
+      }
+      solvedCount++;
+      if(solvedCount===images.length){ endGame(); }
+      else{ createPuzzle(images[solvedCount]); }
+    };
+    quizDiv.appendChild(btn);
+  });
+}
+/*
+function endGame(){
+  clearInterval(interval);
+  playSound("soundFinish");
+  document.getElementById("puzzle-container").innerHTML="";
+  document.getElementById("quiz").innerHTML="";
+  const res=document.getElementById("result");
+  res.innerHTML=`
+    <p><b>Selesai!</b></p>
+    <p>Nama: ${player.nama}</p>
+    <p>Kelas: ${player.kelas}</p>
+    <p>Skor: ${score}/${images.length}</p>
+    <p>Waktu: ${timer} dtk</p>
+    <button onclick="kirimWA()">Kirim ke WA</button>
+  `;
+}
+
+function kirimWA(){
+  let pesan=`Assalamu'alaikum%0A`+
+             `Nama: ${player.nama}%0A`+
+             `Kelas: ${player.kelas}%0A`+
+             `Skor: ${score}/${images.length}%0A`+
+             `Waktu: ${timer} dtk`;
+  window.open("https://wa.me/6281234567890?text="+pesan, "_blank");
+}
+*/
+function endGame(){
+  clearInterval(interval);
+  document.getElementById("puzzle-container").innerHTML="";
+  document.getElementById("quiz").innerHTML="";
+  const nilai = Math.round((score / images.length) * 100); // hitung nilai
+
+  const res=document.getElementById("result");
+  res.innerHTML=`
+    <p>Alhamdulillah<br><b>Selesai!</b></p>
+    <p><img src="thanks.gif" width="100px" height="50%"></p>
+    <p>Nama: ${player.nama}</p>
+    <p>Kelas: ${player.kelas}</p>
+    <p>Skor Benar: ${score}/${images.length}</p>
+    <p>Nilai: ${nilai}</p>
+    <p>Waktu: ${timer} dtk</p>
+    <button onclick="kirimWA(${nilai})">Kirim ke WA</button>
+  `;
+}
+
+function kirimWA(nilai){
+  let pesan=`Assalamu'alaikum%0A`+
+             `Nama: ${player.nama}%0A`+
+             `Kelas: ${player.kelas}%0A`+
+             `Skor Benar: ${score}/${images.length}%0A`+
+             `Nilai: ${nilai}%0A`+
+             `Waktu: ${timer} dtk`;
+  window.open("https://wa.me/6281939352081?text="+pesan, "_blank");
+}
+
+</script>
+</body>
+</html>

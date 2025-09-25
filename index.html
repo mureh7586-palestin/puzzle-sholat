@@ -58,14 +58,20 @@
   <audio id="soundFinish" src="finish.mp3"></audio>
 
 <script>
-const images = ["img1.PNG","img2.PNG","img3.PNG","img4.PNG","img5.PNG"];
+const images = ["niat.jpg","rukuk.jpg","salam.jpg","takbiratul ihram.jpg","iftitah.jpg","duduk antara 2 sujud.jpg","i'tidal.jpg","tasyahud awal.jpg","tasyahud akhir.jpg","qunut.png","berdiri kembali.jpg"];
 
 const quizzes = {
-  "img1.PNG": { question: "Apa arti dari Asmaul Husna الرَّحْمـٰنُ ?", options: ["Yang Maha Penyayang","Yang Maha Pengasih","Yang Maha Suci"], answer: "Yang Maha Pengasih" },
-  "img2.PNG": { question: "Apa arti dari Asmaul Husna الرَّحِيْمُ ?", options: ["Yang Maha Perkasa","Yang Maha Memberi","Yang Maha Penyayang"], answer: "Yang Maha Penyayang" },
-  "img3.PNG": { question: "Apa arti dari Asmaul Husna الْمَلِكُ ?", options: ["Yang Maha Merajai/Memerintah","Yang Maha Memberi Keamanan","Yang Maha Suci"], answer: "Yang Maha Merajai/Memerintah" },
-  "img4.PNG": { question: "Apa arti dari Asmaul Husna الْقُدُّوْسُ ?", options: ["Yang Maha Perkasa","Yang Maha Suci","Yang Maha Megah"], answer: "Yang Maha Perkasa" },
-  "img5.PNG": { question: "Apa arti dari Asmaul Husna السَّلاَمُ ?", options: ["Yang Maha Pemelihara","Yang Maha Memberi Kesejahteraan","Yang Maha Pemberi Karunia"], answer: "Yang Maha Memberi Kesejahteraan" }
+  "niat.jpg": { question: "Disebut gerakan apa dalam sholat pada gambar diatas ?", options: ["Berdiri Kembali","Takbiratul Ihram","Niat"], answer: "Niat" },
+  "rukuk.jpg": { question: "Disebut gerakan apa dalam sholat pada gambar diatas ?", options: ["Sujud","Rukuk","Nunduk"], answer: "Rukuk" },
+  "salam.jpg": { question: "Disebut gerakan apa dalam sholat pada gambar diatas ?", options: ["Salam","Noleh","Rukuk"], answer: "Salam" },
+  "takbiratul ihram.jpg": { question: "Disebut gerakan apa dalam sholat pada gambar diatas ?", options: ["Sujud","Berdiri Kembali","Takbiratul Ihram"], answer: "Takbiratul Ihram" },
+  "iftitah.jpg": { question: "Disebut gerakan apa dalam sholat pada gambar diatas ?", options: ["Qunut", "Iftitah", "Duduk diatara 2 sujud"], answer: "Iftitah" },
+  "Duduk antara 2 sujud.jpg": { question: "Disebut gerakan apa dalam sholat pada gambar diatas ?", options: ["Duduk diatara 2 sujud", "Tasyahud Awal", "I'tidal"], answer: "Duduk diatara 2 sujud" },
+  "i'tidal.jpg": { question: "Disebut gerakan apa dalam sholat pada gambar diatas ?", options: ["I'tidal", "Rukuk", "Sujud"], answer: "I'tidal" },
+  "tasyahud awal.jpg": { question: "Disebut gerakan apa dalam sholat pada gambar diatas ?", options: ["Tasyahud Akhir", "Tasyahud Awal", "Rukuk"], answer: "Tasyahud Awal" },
+  "tasyahud akhir.jpg": { question: "Disebut gerakan apa dalam sholat pada gambar diatas ?", options: ["Rukuk", "Tasyahud Awal", "Tasyahud Akhir"], answer: "Tasyahud Akhir" },
+  "qunut.png": { question: "Disebut gerakan apa dalam sholat pada gambar diatas ?", options: ["Qunut", "Do'a", "Angkat Tangan"], answer: "Qunut" },
+  "berdiri kembali.jpg": { question: "Disebut gerakan apa dalam sholat pada gambar diatas ?", options: ["Rukuk", "Sujud", "Berdiri Kembali"], answer: "Berdiri Kembali" }
 };
 
 let currentImage = null;
